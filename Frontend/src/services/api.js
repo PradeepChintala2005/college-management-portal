@@ -2,7 +2,9 @@ import axios from 'axios';
 
 // 1. Create a custom Axios instance
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL, // Relies on our Vite proxy server configuration (routes starting with /api go to backend)
+  baseURL: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? '' // Relies on our Vite proxy server configuration in local development
+    : (import.meta.env.VITE_API_URL || 'https://college-management-portal-a65e.onrender.com'), // Production deployed Render URL
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'

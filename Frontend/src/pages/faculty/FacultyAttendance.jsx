@@ -333,7 +333,34 @@ export default function FacultyAttendance() {
 
           {/* Right Column: Attendance statistics spreadsheet */}
           <div className="glass-panel" style={{ padding: '30px', overflowX: 'auto' }}>
-            <h4 style={{ marginBottom: '16px' }}>Attendance Roster Statistics</h4>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h4 style={{ margin: 0 }}>Attendance Roster Statistics</h4>
+              <button 
+                type="button"
+                className="btn-secondary" 
+                style={{ padding: '6px 12px', fontSize: '0.8rem', cursor: 'pointer' }}
+                onClick={async () => {
+                  if (!selectedSectionId) return;
+                  try {
+                    setLoading(true);
+                    setErrorMsg('');
+                    setSuccessMsg('');
+                    const statsRes = await api.get(`/api/attendance/section/${selectedSectionId}`);
+                    if (statsRes.data && statsRes.data.success) {
+                      setAttendanceStats(statsRes.data.data.sheet || []);
+                      setSuccessMsg('Attendance statistics synchronized successfully!');
+                    }
+                  } catch (err) {
+                    console.error('Refresh stats error:', err);
+                    setErrorMsg('Failed to reload section statistics.');
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+              >
+                Refresh Stats
+              </button>
+            </div>
             <p className="text-secondary" style={{ fontSize: '0.85rem', marginBottom: '24px' }}>
               Summary spreadsheet of student attendance logs for this class delivery section.
             </p>

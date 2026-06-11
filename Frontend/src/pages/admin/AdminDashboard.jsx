@@ -31,9 +31,9 @@ function AdminOverview() {
 
       setStats({
         departments: deptRes.data?.data?.length || 0,
-        courses: courseRes.data?.data?.courses?.length || 0,
-        students: studentRes.data?.data?.students?.length || 0,
-        faculty: facultyRes.data?.data?.faculty?.length || 0
+        courses: courseRes.data?.data?.courses?.length || courseRes.data?.data?.length || 0,
+        students: studentRes.data?.data?.students?.length || studentRes.data?.data?.length || 0,
+        faculty: facultyRes.data?.data?.faculty?.length || facultyRes.data?.data?.length || 0
       });
     } catch (err) {
       console.error('Failed to load dashboard overview stats:', err);

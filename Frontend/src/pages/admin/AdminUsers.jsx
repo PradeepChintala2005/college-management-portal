@@ -29,6 +29,39 @@ export default function AdminUsers() {
   const [successMsg, setSuccessMsg] = useState('');
   const [editingItem, setEditingItem] = useState(null); // holds user profile object if editing
 
+  // Student Records Modal States
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [modalGrades, setModalGrades] = useState([]);
+  const [modalAttendance, setModalAttendance] = useState([]);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalTab, setModalTab] = useState('profile'); // 'profile', 'grades', 'attendance'
+
+  const handleViewRecordsClick = async (student) => {
+    setSelectedStudent(student);
+    setModalTab('profile');
+    setModalGrades([]);
+    setModalAttendance([]);
+    setModalLoading(true);
+
+    try {
+      const [gradesRes, attendanceRes] = await Promise.all([
+        api.get(`/api/marks/student/${student.id}`),
+        api.get(`/api/attendance/student/${student.id}`)
+      ]);
+
+      if (gradesRes.data && gradesRes.data.success) {
+        setModalGrades(gradesRes.data.data.grades || []);
+      }
+      if (attendanceRes.data && attendanceRes.data.success) {
+        setModalAttendance(attendanceRes.data.data.logs || []);
+      }
+    } catch (err) {
+      console.error('Failed to load student academic records:', err);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
   // Fetch departments list for dropdown selector
   const fetchDepartments = async () => {
     try {
@@ -488,6 +521,15 @@ export default function AdminUsers() {
                     <td style={{ padding: '12px 8px' }}>
                       <div style={{ display: 'flex', gap: '6px' }}>
                         <button
+                          type="button"
+                          className="btn-primary"
+                          style={{ padding: '4px 6px', fontSize: '0.7rem', borderRadius: 'var(--radius-sm)' }}
+                          onClick={() => handleViewRecordsClick(student)}
+                        >
+                          Records
+                        </button>
+                        <button
+                          type="button"
                           className="btn-secondary"
                           style={{ padding: '4px 6px', fontSize: '0.7rem', borderRadius: 'var(--radius-sm)' }}
                           onClick={() => handleEditClick(student)}
@@ -495,6 +537,7 @@ export default function AdminUsers() {
                           Edit
                         </button>
                         <button
+                          type="button"
                           className="btn-secondary"
                           style={{ padding: '4px 6px', fontSize: '0.7rem', borderRadius: 'var(--radius-sm)', borderColor: 'rgba(239, 68, 68, 0.15)', color: 'hsl(var(--color-danger))' }}
                           onClick={() => handleDeleteClick(student.id)}
@@ -563,6 +606,216 @@ export default function AdminUsers() {
           )}
         </div>
       </div>
+
+      {/* Student Records Detail Modal */}
+      {selectedStudent && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(5, 3, 15, 0.85)',
+          backdropFilter: 'blur(12px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999
+        }}>
+          <div className="glass-panel animate-fade-in" style={{
+            width: '90%',
+            maxWidth: '750px',
+            maxHeight: '85vh',
+            padding: '35px',
+            overflowY: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '24px',
+            border: '1px solid rgba(255, 255, 255, 0.08)'
+          }}>
+            {/* Modal Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <span className="badge badge-warning" style={{ fontSize: '0.7rem', textTransform: 'uppercase' }}>
+                  {selectedStudent.roll_number}
+                </span>
+                <h3 className="text-gradient" style={{ fontSize: '1.5rem', marginTop: '6px', marginBottom: '2px' }}>
+                  {selectedStudent.first_name} {selectedStudent.last_name}
+                </h3>
+                <span className="text-secondary" style={{ fontSize: '0.85rem' }}>{selectedStudent.email}</span>
+              </div>
+              <button 
+                type="button"
+                className="btn-secondary" 
+                style={{ padding: '4px 10px', fontSize: '0.8rem', cursor: 'pointer' }}
+                onClick={() => setSelectedStudent(null)}
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            {/* Modal Tabs */}
+            <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--glass-border)', paddingBottom: '10px' }}>
+              {['profile', 'grades', 'attendance'].map((tab) => (
+                <button
+                  key={tab}
+                  type="button"
+                  className={modalTab === tab ? 'btn-primary' : 'btn-secondary'}
+                  style={{ padding: '6px 12px', fontSize: '0.8rem', textTransform: 'capitalize' }}
+                  onClick={() => setModalTab(tab)}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+
+            {/* Modal Body */}
+            {modalLoading ? (
+              <p className="text-secondary" style={{ textAlign: 'center', padding: '40px' }}>
+                Fetching student files from archives...
+              </p>
+            ) : (
+              <div>
+                {/* 1. PROFILE TAB */}
+                {modalTab === 'profile' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <h5 style={{ fontSize: '1rem', margin: 0 }}>Basic Registration Profile</h5>
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '16px',
+                      background: 'rgba(255, 255, 255, 0.01)',
+                      border: '1px solid var(--glass-border)',
+                      padding: '20px',
+                      borderRadius: 'var(--radius-md)'
+                    }}>
+                      <div>
+                        <span className="text-muted" style={{ fontSize: '0.75rem', textTransform: 'uppercase' }}>Roll Number</span>
+                        <div style={{ fontWeight: 'bold', fontSize: '0.95rem', marginTop: '4px' }}>{selectedStudent.roll_number}</div>
+                      </div>
+                      <div>
+                        <span className="text-muted" style={{ fontSize: '0.75rem', textTransform: 'uppercase' }}>Department</span>
+                        <div style={{ fontWeight: 'bold', fontSize: '0.95rem', marginTop: '4px' }}>
+                          {selectedStudent.department_name ? `${selectedStudent.department_code} - ${selectedStudent.department_name}` : 'Unassigned'}
+                        </div>
+                      </div>
+                      <div>
+                        <span className="text-muted" style={{ fontSize: '0.75rem', textTransform: 'uppercase' }}>Contact Phone</span>
+                        <div style={{ fontWeight: 'bold', fontSize: '0.95rem', marginTop: '4px' }}>{selectedStudent.phone || 'N/A'}</div>
+                      </div>
+                      <div>
+                        <span className="text-muted" style={{ fontSize: '0.75rem', textTransform: 'uppercase' }}>Date of Birth</span>
+                        <div style={{ fontWeight: 'bold', fontSize: '0.95rem', marginTop: '4px' }}>{selectedStudent.date_of_birth || 'N/A'}</div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. GRADES TAB */}
+                {modalTab === 'grades' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <h5 style={{ fontSize: '1rem', margin: 0 }}>Syllabus Scorecard Grades</h5>
+                    {modalGrades.length === 0 ? (
+                      <p className="text-secondary" style={{ textAlign: 'center', padding: '20px' }}>
+                        No evaluation marks registered for this student.
+                      </p>
+                    ) : (
+                      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                            <th style={{ padding: '8px', color: 'hsl(var(--text-muted))', fontSize: '0.75rem', textTransform: 'uppercase' }}>Subject</th>
+                            <th style={{ padding: '8px', color: 'hsl(var(--text-muted))', fontSize: '0.75rem', textTransform: 'uppercase' }}>Assessment</th>
+                            <th style={{ padding: '8px', color: 'hsl(var(--text-muted))', fontSize: '0.75rem', textTransform: 'uppercase', textAlign: 'center' }}>Score</th>
+                            <th style={{ padding: '8px', color: 'hsl(var(--text-muted))', fontSize: '0.75rem', textTransform: 'uppercase', textAlign: 'right' }}>Ratio</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {modalGrades.map((g) => {
+                            const ratio = Math.round((g.marks_obtained / g.max_marks) * 100);
+                            return (
+                              <tr key={g.mark_id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)', fontSize: '0.85rem' }}>
+                                <td style={{ padding: '10px 8px' }}>
+                                  <div style={{ fontWeight: '600' }}>{g.course_title}</div>
+                                  <span className="badge badge-warning" style={{ fontSize: '0.6rem', padding: '1px 4px', marginTop: '2px', display: 'inline-block' }}>{g.course_code}</span>
+                                </td>
+                                <td style={{ padding: '10px 8px' }}>{g.exam_type}</td>
+                                <td style={{ padding: '10px 8px', textAlign: 'center', fontWeight: 'bold' }}>{g.marks_obtained} / {g.max_marks}</td>
+                                <td style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 'bold', color: ratio >= 75 ? 'hsl(var(--color-success))' : 'hsl(var(--color-danger))' }}>
+                                  {ratio}%
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                )}
+
+                {/* 3. ATTENDANCE TAB */}
+                {modalTab === 'attendance' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                      <div className="glass-panel" style={{ padding: '16px 24px', flex: 1, textAlign: 'center' }}>
+                        <span className="text-muted" style={{ fontSize: '0.75rem', textTransform: 'uppercase' }}>Checked-In Classes</span>
+                        <h4 style={{ margin: '6px 0 0 0', fontSize: '1.5rem' }}>
+                          {modalAttendance.filter(log => log.status === 'Present' || log.status === 'Late').length} / {modalAttendance.length}
+                        </h4>
+                      </div>
+                      <div className="glass-panel" style={{ padding: '16px 24px', flex: 1, textAlign: 'center' }}>
+                        <span className="text-muted" style={{ fontSize: '0.75rem', textTransform: 'uppercase' }}>Ratio Percentage</span>
+                        <h4 style={{
+                          margin: '6px 0 0 0',
+                          fontSize: '1.5rem',
+                          color: (modalAttendance.length > 0 && Math.round((modalAttendance.filter(log => log.status === 'Present' || log.status === 'Late').length / modalAttendance.length) * 100) >= 75) ? 'hsl(var(--color-success))' : 'hsl(var(--color-danger))'
+                        }}>
+                          {modalAttendance.length > 0 
+                            ? Math.round((modalAttendance.filter(log => log.status === 'Present' || log.status === 'Late').length / modalAttendance.length) * 100) 
+                            : 0}%
+                        </h4>
+                      </div>
+                    </div>
+
+                    <h5 style={{ fontSize: '1rem', margin: 0 }}>Class Attendance Logs</h5>
+                    {modalAttendance.length === 0 ? (
+                      <p className="text-secondary" style={{ textAlign: 'center', padding: '20px' }}>
+                        No attendance check-in logs found.
+                      </p>
+                    ) : (
+                      <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+                          <thead>
+                            <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
+                              <th style={{ padding: '8px', color: 'hsl(var(--text-muted))', fontSize: '0.75rem', textTransform: 'uppercase' }}>Date</th>
+                              <th style={{ padding: '8px', color: 'hsl(var(--text-muted))', fontSize: '0.75rem', textTransform: 'uppercase' }}>Course</th>
+                              <th style={{ padding: '8px', color: 'hsl(var(--text-muted))', fontSize: '0.75rem', textTransform: 'uppercase', textAlign: 'right' }}>Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {modalAttendance.map((log) => (
+                              <tr key={log.record_id || log.id} style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.03)', fontSize: '0.8rem' }}>
+                                <td style={{ padding: '8px' }}>{log.session_date}</td>
+                                <td style={{ padding: '8px', fontWeight: '500' }}>{log.course_code}</td>
+                                <td style={{ padding: '8px', textAlign: 'right' }}>
+                                  <span className={`badge ${
+                                    log.status === 'Present' ? 'badge-success' : log.status === 'Late' ? 'badge-warning' : 'badge-danger'
+                                  }`} style={{ fontSize: '0.6rem', padding: '2px 6px' }}>
+                                    {log.status}
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

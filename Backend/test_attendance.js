@@ -335,8 +335,8 @@ async function runTests() {
     if (t11.statusCode !== 200 || !t11.data.success) {
       throw new Error('Test 11 failed: Student A stats retrieval failed.');
     }
-    if (t11.data.data.statistics.percentage !== 100.0) {
-      throw new Error('Test 11 failed: Student A has 2 presents out of 2 logs. Percentage should be 100%.');
+    if (t11.data.data.statistics.percentage !== 66.67) {
+      throw new Error('Test 11 failed: Student A has 2 presents out of 3 sessions. Percentage should be 66.67%.');
     }
     console.log('✅ Test 11 Passed! Individual student metrics retrieved successfully.');
 
@@ -349,7 +349,7 @@ async function runTests() {
       throw new Error('Test 12 failed: Section stats retrieval failed.');
     }
     const targetStudentRow = t12.data.data.sheet.find(s => s.student_id === studentAProfileId);
-    if (!targetStudentRow || targetStudentRow.present_count !== 2 || targetStudentRow.total_sessions !== 3) {
+    if (!targetStudentRow || targetStudentRow.total_present !== 2 || targetStudentRow.total_sessions !== 3) {
       throw new Error('Test 12 failed: Roster statistics did not match database records count!');
     }
     console.log('✅ Test 12 Passed! Class Section roster spreadsheet generated accurately.');

@@ -125,19 +125,21 @@ const AttendanceModel = {
       const sql = `
         SELECT 
           ar.id AS record_id,
-          ar.status,
+          COALESCE(ar.status, 'Absent') AS status,
           ar.marked_at,
+          as_sess.id AS session_id,
           as_sess.session_date,
           cs.section_name,
           cs.semester,
           c.course_code,
           c.title AS course_title
-        FROM attendance_records ar
-        INNER JOIN attendance_sessions as_sess ON ar.session_id = as_sess.id
-        INNER JOIN class_sections cs ON as_sess.class_section_id = cs.id
+        FROM enrollments e
+        INNER JOIN class_sections cs ON e.class_section_id = cs.id
         INNER JOIN courses c ON cs.course_id = c.id
-        WHERE ar.student_id = ?
-        ORDER BY as_sess.session_date DESC, ar.id DESC
+        INNER JOIN attendance_sessions as_sess ON cs.id = as_sess.class_section_id
+        LEFT JOIN attendance_records ar ON as_sess.id = ar.session_id AND ar.student_id = e.student_id
+        WHERE e.student_id = ?
+        ORDER BY as_sess.session_date DESC, as_sess.id DESC
       `;
       
       db.all(sql, [studentId], (err, rows) => {
@@ -164,9 +166,9 @@ const AttendanceModel = {
           s.first_name,
           s.last_name,
           u.email,
-          COALESCE(SUM(CASE WHEN ar.status = 'Present' THEN 1 ELSE 0 END), 0) AS total_present,
-          COALESCE(SUM(CASE WHEN ar.status = 'Absent' THEN 1 ELSE 0 END), 0) AS total_absent,
-          COALESCE(SUM(CASE WHEN ar.status = 'Late' THEN 1 ELSE 0 END), 0) AS total_late,
+          COALESCE(SUM(CASE WHEN as_sess.id IS NOT NULL AND COALESCE(ar.status, 'Absent') = 'Present' THEN 1 ELSE 0 END), 0) AS total_present,
+          COALESCE(SUM(CASE WHEN as_sess.id IS NOT NULL AND COALESCE(ar.status, 'Absent') = 'Absent' THEN 1 ELSE 0 END), 0) AS total_absent,
+          COALESCE(SUM(CASE WHEN as_sess.id IS NOT NULL AND COALESCE(ar.status, 'Absent') = 'Late' THEN 1 ELSE 0 END), 0) AS total_late,
           COUNT(ar.id) AS total_marked,
           (SELECT COUNT(*) FROM attendance_sessions WHERE class_section_id = ?) AS total_sessions
         FROM enrollments e
