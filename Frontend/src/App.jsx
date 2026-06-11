@@ -38,7 +38,9 @@ function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [infoMsg, setInfoMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [seeding, setSeeding] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -48,6 +50,7 @@ function LoginScreen() {
     }
 
     setErrorMsg('');
+    setInfoMsg('');
     setSubmitting(true);
 
     try {
@@ -68,6 +71,26 @@ function LoginScreen() {
       setErrorMsg(err.response?.data?.message || 'Server connection failed. Make sure backend is running.');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleSeed = async () => {
+    setErrorMsg('');
+    setInfoMsg('');
+    setSeeding(true);
+
+    try {
+      const response = await api.post('/api/auth/seed');
+      if (response.data && response.data.success) {
+        setInfoMsg('Database seeded successfully!\nUse one of these default accounts:\n• Admin: admin@college.edu\n• Faculty: prof.cse@college.edu\n• Student: student.cse@college.edu\nPassword for all: password123');
+      } else {
+        setErrorMsg('Failed to seed database.');
+      }
+    } catch (err) {
+      console.error('Seeding error:', err);
+      setErrorMsg(err.response?.data?.message || 'Failed to connect to backend server for seeding.');
+    } finally {
+      setSeeding(false);
     }
   };
 
@@ -99,6 +122,14 @@ function LoginScreen() {
           </div>
         )}
 
+        {infoMsg && (
+          <div style={{ marginBottom: '20px', textAlign: 'left' }}>
+            <span className="badge badge-success" style={{ display: 'block', padding: '12px', whiteSpace: 'pre-wrap', lineHeight: '1.4' }}>
+              {infoMsg}
+            </span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label className="form-label">Email Address</label>
@@ -108,7 +139,7 @@ function LoginScreen() {
               placeholder="e.g. admin@college.edu"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={submitting}
+              disabled={submitting || seeding}
               required
             />
           </div>
@@ -121,7 +152,7 @@ function LoginScreen() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              disabled={submitting}
+              disabled={submitting || seeding}
               required
             />
           </div>
@@ -130,11 +161,31 @@ function LoginScreen() {
             type="submit" 
             className="btn-primary" 
             style={{ width: '100%', padding: '12px' }}
-            disabled={submitting}
+            disabled={submitting || seeding}
           >
             {submitting ? 'Authenticating...' : 'Sign In'}
           </button>
         </form>
+
+        <div style={{ marginTop: '24px', textAlign: 'center' }}>
+          <span className="text-muted" style={{ fontSize: '0.85rem' }}>Database empty or reset? </span>
+          <button 
+            type="button" 
+            onClick={handleSeed} 
+            disabled={seeding || submitting}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#8b5cf6',
+              textDecoration: 'underline',
+              cursor: 'pointer',
+              fontSize: '0.85rem',
+              padding: 0
+            }}
+          >
+            {seeding ? 'Seeding...' : 'Seed Default Accounts'}
+          </button>
+        </div>
       </div>
     </div>
   );

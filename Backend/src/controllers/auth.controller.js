@@ -220,6 +220,122 @@ const AuthController = {
     } catch (err) {
       next(err);
     }
+  },
+
+  /**
+   * Reset and seed database (Public Helper for deployed environments)
+   * Route: POST /api/auth/seed
+   */
+  async seedDatabase(req, res, next) {
+    try {
+      const db = require('../database/db');
+      const bcrypt = require('bcryptjs');
+      const passwordHash = await bcrypt.hash('password123', 10);
+
+      db.serialize(() => {
+        db.run('BEGIN TRANSACTION;');
+
+        // Delete existing data safely
+        db.run('DELETE FROM attendance_records;');
+        db.run('DELETE FROM attendance_sessions;');
+        db.run('DELETE FROM submissions;');
+        db.run('DELETE FROM assignments;');
+        db.run('DELETE FROM marks;');
+        db.run('DELETE FROM enrollments;');
+        db.run('DELETE FROM class_sections;');
+        db.run('DELETE FROM courses;');
+        db.run('DELETE FROM faculty;');
+        db.run('DELETE FROM students;');
+        db.run('DELETE FROM departments;');
+        db.run('DELETE FROM announcements;');
+        db.run('DELETE FROM users;');
+        db.run('DELETE FROM sqlite_sequence;');
+
+        // A. Seed Departments
+        const insertDept = 'INSERT INTO departments (name, code, description) VALUES (?, ?, ?)';
+        db.run(insertDept, ['Computer Science & Engineering', 'CSE', 'Academic division of CSE'], function(err) {
+          if (err) {
+            db.run('ROLLBACK;');
+            return res.status(500).json({ success: false, message: err.message });
+          }
+          const cseDeptId = this.lastID;
+
+          db.run(insertDept, ['Electronics & Communication Engineering', 'ECE', 'Academic division of ECE'], function(err) {
+            if (err) {
+              db.run('ROLLBACK;');
+              return res.status(500).json({ success: false, message: err.message });
+            }
+            const eceDeptId = this.lastID;
+
+            // B. Seed Admin User
+            const insertUser = 'INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)';
+            db.run(insertUser, ['admin@college.edu', passwordHash, 'admin'], function(err) {
+              if (err) {
+                db.run('ROLLBACK;');
+                return res.status(500).json({ success: false, message: err.message });
+              }
+
+              // C. Seed Faculty User & Profile
+              db.run(insertUser, ['prof.cse@college.edu', passwordHash, 'faculty'], function(err) {
+                if (err) {
+                  db.run('ROLLBACK;');
+                  return res.status(500).json({ success: false, message: err.message });
+                }
+                const profUserId = this.lastID;
+
+                const insertFaculty = 'INSERT INTO faculty (user_id, department_id, employee_id, first_name, last_name, designation) VALUES (?, ?, ?, ?, ?, ?)';
+                db.run(insertFaculty, [profUserId, cseDeptId, 'EMP-CSE-01', 'Richard', 'Feynman', 'Professor'], function(err) {
+                  if (err) {
+                    db.run('ROLLBACK;');
+                    return res.status(500).json({ success: false, message: err.message });
+                  }
+
+                  // D. Seed Student User & Profile
+                  db.run(insertUser, ['student.cse@college.edu', passwordHash, 'student'], function(err) {
+                    if (err) {
+                      db.run('ROLLBACK;');
+                      return res.status(500).json({ success: false, message: err.message });
+                    }
+                    const studentUserId = this.lastID;
+
+                    const insertStudent = 'INSERT INTO students (user_id, department_id, roll_number, first_name, last_name) VALUES (?, ?, ?, ?, ?)';
+                    db.run(insertStudent, [studentUserId, cseDeptId, 'ROLL-CSE-01', 'Alice', 'Smith'], function(err) {
+                      if (err) {
+                        db.run('ROLLBACK;');
+                        return res.status(500).json({ success: false, message: err.message });
+                      }
+
+                      // Commit Transaction
+                      db.run('COMMIT;', (commitErr) => {
+                        if (commitErr) {
+                          db.run('ROLLBACK;');
+                          return res.status(500).json({
+                            success: false,
+                            message: 'Failed to commit seed transaction: ' + commitErr.message
+                          });
+                        }
+                        res.status(200).json({
+                          success: true,
+                          message: 'Database seeded successfully with default accounts!',
+                          data: {
+                            admin: 'admin@college.edu',
+                            faculty: 'prof.cse@college.edu',
+                            student: 'student.cse@college.edu',
+                            password: 'password123'
+                          }
+                        });
+                      });
+                    });
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 };
 

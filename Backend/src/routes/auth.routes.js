@@ -12,6 +12,11 @@ const AuthMiddleware = require('../middleware/auth.middleware');
 // Access:  Public
 router.post('/register', AuthController.register);
 
+// Route:   POST /api/auth/seed
+// Desc:    Reset and seed database with default accounts
+// Access:  Public
+router.post('/seed', AuthController.seedDatabase);
+
 // Route:   POST /api/auth/login
 // Desc:    Authenticate user credentials and return secure JWT
 // Access:  Public
