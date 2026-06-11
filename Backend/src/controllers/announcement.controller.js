@@ -28,7 +28,7 @@ const AnnouncementController = {
       // 2. Role Verification and Department Resolution
       if (req.user.role === 'faculty') {
         // Faculty: Automatically fetch their department profile to restrict their announcements
-        const faculty = await FacultyModel.findByUserId(req.user.userId);
+        const faculty = await FacultyModel.findByUserId(req.user.userId); 
         if (!faculty) {
           return res.status(403).json({
             success: false,
