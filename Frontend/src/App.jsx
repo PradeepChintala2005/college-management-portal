@@ -41,6 +41,10 @@ function LoginScreen() {
   const [infoMsg, setInfoMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  
+  // Easter egg or query param: only show seed tools if ?dev=true or on double click of header
+  const devParam = new URLSearchParams(window.location.search).get('dev') === 'true' || new URLSearchParams(window.location.search).get('seed') === 'true';
+  const [showSeed, setShowSeed] = useState(devParam);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -100,14 +104,19 @@ function LoginScreen() {
       alignItems: 'center',
       justifyContent: 'center',
       minHeight: '100vh',
-      background: 'radial-gradient(circle at top right, rgba(139, 92, 246, 0.1) 0%, transparent 60%)'
+      background: 'radial-gradient(circle at top right, rgba(139, 92, 246, 0.05) 0%, transparent 60%)'
     }} className="animate-fade-in">
       <div className="glass-panel" style={{
         maxWidth: '420px',
         width: '100%',
         padding: '40px',
       }}>
-        <h2 className="text-gradient" style={{ textAlign: 'center', marginBottom: '8px', fontSize: '2rem' }}>
+        <h2 
+          className="text-gradient" 
+          style={{ textAlign: 'center', marginBottom: '8px', fontSize: '2rem', cursor: 'default', userSelect: 'none' }}
+          onDoubleClick={() => setShowSeed(!showSeed)}
+          title="Double click to reveal system seeding utilities"
+        >
           Welcome back
         </h2>
         <p className="text-muted" style={{ textAlign: 'center', fontSize: '0.9rem', marginBottom: '24px' }}>
@@ -167,25 +176,27 @@ function LoginScreen() {
           </button>
         </form>
 
-        <div style={{ marginTop: '24px', textAlign: 'center' }}>
-          <span className="text-muted" style={{ fontSize: '0.85rem' }}>Database empty or reset? </span>
-          <button 
-            type="button" 
-            onClick={handleSeed} 
-            disabled={seeding || submitting}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#8b5cf6',
-              textDecoration: 'underline',
-              cursor: 'pointer',
-              fontSize: '0.85rem',
-              padding: 0
-            }}
-          >
-            {seeding ? 'Seeding...' : 'Seed Default Accounts'}
-          </button>
-        </div>
+        {showSeed && (
+          <div style={{ marginTop: '24px', textAlign: 'center' }} className="animate-fade-in">
+            <span className="text-muted" style={{ fontSize: '0.85rem' }}>Database empty or reset? </span>
+            <button 
+              type="button" 
+              onClick={handleSeed} 
+              disabled={seeding || submitting}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#8b5cf6',
+                textDecoration: 'underline',
+                cursor: 'pointer',
+                fontSize: '0.85rem',
+                padding: 0
+              }}
+            >
+              {seeding ? 'Seeding...' : 'Seed Default Accounts'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

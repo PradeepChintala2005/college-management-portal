@@ -5,35 +5,35 @@
    ========================================== */
 
 :root {
-  /* Color Palette (Harmonized HSL Midnight Theme) */
-  --bg-primary: 248 45% 6%;         /* Midnight Black */
-  --bg-secondary: 246 43% 10%;       /* Slate Midnight */
-  --bg-tertiary: 245 40% 14%;        /* Dark Indigo Panel */
+  /* Color Palette (Harmonized HSL Light Theme with clean slate tones) */
+  --bg-primary: 0 0% 100%;           /* Pure White Body */
+  --bg-secondary: 210 20% 98%;       /* Slate Light White (#f8fafc) */
+  --bg-tertiary: 214 15% 91%;        /* Slate Border Light (#e2e8f0) */
   
-  --text-primary: 210 40% 98%;       /* Soft White */
-  --text-secondary: 215 15% 75%;     /* Cool Gray */
-  --text-muted: 215 12% 55%;         /* Darker Gray */
+  --text-primary: 222 47% 11%;       /* Slate Deep Dark (#0f172a) */
+  --text-secondary: 217 19% 27%;     /* Slate Medium (#334155) */
+  --text-muted: 215 16% 47%;         /* Slate Lighter Gray (#64748b) */
 
-  --color-primary: 263 90% 65%;      /* Electric Violet */
-  --color-primary-hover: 263 95% 75%;/* Neon Violet */
-  --color-success: 142 70% 45%;      /* Emerald Green */
-  --color-warning: 38 92% 50%;       /* Amber Orange */
-  --color-danger: 350 80% 55%;       /* Crimson Red */
+  --color-primary: 262 83% 58%;      /* Modern Purple Brand (#7c3aed) */
+  --color-primary-hover: 262 80% 50%;/* Darker Purple Hover (#6d28d9) */
+  --color-success: 142 76% 36%;      /* Emerald Green (#16a34a) */
+  --color-warning: 38 92% 50%;       /* Amber Orange (#d97706) */
+  --color-danger: 350 89% 60%;       /* Crimson Red (#dc2626) */
 
-  /* Translucent & Glass Tokens */
-  --glass-bg: rgba(13, 10, 28, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.07);
-  --glass-border-hover: rgba(139, 92, 246, 0.25);
+  /* Translucent & Glass Tokens - Adjusted for Light Mode */
+  --glass-bg: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(226, 232, 240, 0.8);
+  --glass-border-hover: rgba(124, 58, 237, 0.2);
   
   /* Corner & Shadow Tokens */
-  --radius-lg: 16px;
-  --radius-md: 10px;
-  --radius-sm: 6px;
+  --radius-lg: 12px;
+  --radius-md: 8px;
+  --radius-sm: 4px;
   
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.6);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.8);
-  --shadow-primary-glow: 0 0 20px rgba(139, 92, 246, 0.2);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.025);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+  --shadow-primary-glow: 0 4px 14px 0 rgba(124, 58, 237, 0.1);
 
   /* Animation Timings */
   --transition-fast: 0.15s ease;
@@ -155,8 +155,8 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   justify-content: center;
   padding: 10px 22px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--glass-border);
+  background: hsl(var(--bg-secondary));
+  border: 1px solid hsl(var(--bg-tertiary));
   color: hsl(var(--text-primary));
   font-weight: 600;
   font-size: 0.95rem;
@@ -167,8 +167,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: var(--glass-border-hover);
+  background: hsl(var(--bg-tertiary));
+  border-color: hsl(var(--text-muted));
   transform: translateY(-1px);
 }
 
@@ -191,10 +191,10 @@ h1, h2, h3, h4, h5, h6 {
 .form-input {
   width: 100%;
   padding: 12px 16px;
-  background: rgba(13, 10, 28, 0.5);
-  border: 1px solid var(--glass-border);
+  background: hsl(var(--bg-primary));
+  border: 1px solid hsl(var(--bg-tertiary));
   border-radius: var(--radius-md);
-  color: #fff;
+  color: hsl(var(--text-primary));
   font-family: inherit;
   font-size: 0.95rem;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
@@ -203,7 +203,7 @@ h1, h2, h3, h4, h5, h6 {
 .form-input:focus {
   outline: none;
   border-color: hsl(var(--color-primary));
-  box-shadow: 0 0 10px rgba(139, 92, 246, 0.15);
+  box-shadow: var(--shadow-primary-glow);
 }
 
 .form-input::placeholder {
